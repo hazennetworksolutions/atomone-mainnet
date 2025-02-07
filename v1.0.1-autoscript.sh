@@ -115,7 +115,7 @@ echo 'export PORT='$PORT
 
 # Setting environment variables
 echo "export MONIKER=$MONIKER" >> $HOME/.bash_profile
-echo "export ATOMONE_CHAIN_ID=\"atomone-testnet-1\"" >> $HOME/.bash_profile
+echo "export ATOMONE_CHAIN_ID=\"atomone-1"" >> $HOME/.bash_profile
 echo "export ATOMONE_PORT=$PORT" >> $HOME/.bash_profile
 source $HOME/.bash_profile
 
@@ -148,7 +148,7 @@ cd $HOME
 rm -rf atomone
 git clone https://github.com/atomone-hub/atomone
 cd atomone
-git checkout v1.0.0
+git checkout v1.0.1
 make build
 
 mkdir -p ~/.atomone/cosmovisor/genesis/bin
@@ -186,15 +186,16 @@ sudo systemctl enable atomoned
 
 # Initialize the node
 printGreen "7. Initializing the node..."
-atomoned config node tcp://localhost:${ATOMONE_PORT}657
-atomoned config keyring-backend os
-atomoned config chain-id atomone-testnet-1
-atomoned init $MONIKER --chain-id atomone-testnet-1
+atomoned init $MONIKER --chain-id $ATOMONE_CHAIN_ID
+sed -i \
+-e "s/chain-id = .*/chain-id = \"atomone-1\"/" \
+-e "s/keyring-backend = .*/keyring-backend = \"os\"/" \
+-e "s/node = .*/node = \"tcp:\/\/localhost:${ATOMONE_PORT}657\"/" $HOME/.atomone/config/client.toml
 
 # Download genesis and addrbook files
 printGreen "8. Downloading genesis and addrbook..."
-wget -O $HOME/.atomone/config/genesis.json https://server-2.itrocket.net/testnet/atomone/genesis.json
-wget -O $HOME/.atomone/config/addrbook.json  https://raw.githubusercontent.com/hazennetworksolutions/atomone-testnet/refs/heads/main/addrbook.json
+wget -O $HOME/.atomone/config/genesis.json https://server-7.itrocket.net/mainnet/atomone/genesis.json
+wget -O $HOME/.atomone/config/addrbook.json  https://raw.githubusercontent.com/hazennetworksolutions/atomone-mainnet/refs/heads/main/addrbook.json
 
 
 # Configure gas prices and ports
@@ -221,8 +222,8 @@ s%:26660%:${ATOMONE_PORT}660%g" $HOME/.atomone/config/config.toml
 
 # Set up seeds and peers
 printGreen "10. Setting up peers and seeds..." && sleep 1
-SEEDS="85e441cfe74b8c0f8b820beff46edab20e92716c@atomone-testnet-seed.itrocket.net:62657"
-PEERS="bddf062a8328bcc50e37f83448e770e2e385c72f@atomone-testnet-peer.itrocket.net:62656,4adfce6fcbd3dc61109d8c67801272a162ecd29e@116.202.210.177:62656,14dbb758d8805a146497227caafe224a4ea29c2b@46.232.248.39:19656,dd27a23e0adc98d6dc53802d95ce581b06723845@185.252.233.217:26656,29d901d882d40048124670f6ea902cd933c9aa36@37.60.255.34:26656,5fcea85e54d69b50d23c759ea5f057c0fea6243b@[2a03:cfc0:8000:13::b910:27be]:11756,ce191e4f5bbf8a88412b793fbb1e6ff7b0ba1912@134.17.6.22:26657,801be7658f86f0c19f329d5dbf15a155d7434480@167.160.90.74:29356,94013e2b8be18361f3091287681b63f132475808@218.155.161.169:30355,2231b2285c3ba2f0dec145633d5bc90b8cf782bd@161.97.77.219:26656,843c14811951b44e7a55e7086d93f5425b549321@213.217.234.65:26656"
+SEEDS="f19d9e0f8d48119aa4cafde65de923ae2c29181a@atomone-mainnet-seed.itrocket.net:61656"
+PEERS="ed0e36c57122184ab05b6c635b2f2adf592bfa0c@atomone-mainnet-peer.itrocket.net:61657,5d913650738a081aa02631a7f108dc7812330f0b@37.27.129.24:13656,2a3530e9778122cf9301fb034f6c92d9842049d3@46.166.143.72:26656,706a835221dcc171afa14429fac536d6b5a3736d@63.250.54.71:26656,4ef48d2cc03b332f9a711fc65dc0453839f9040d@8.52.153.92:61656,752bb5f1c914c5294e0844ddc908548115c1052c@65.108.236.5:14556,d3adcf9eee8665ee2d3108f721b3613cdd18c3a3@23.227.223.49:26656,8391dab9a9ece4e3f80e06512bdd1a84af5f257f@95.217.36.103:14556,61b7861a468dfa84532526afd98bea81bf41a874@121.78.247.244:16656,37201c92625df2814a55129f73f10ab6aa2edc35@185.16.39.137:27396"
 sed -i -e "/^\[p2p\]/,/^\[/{s/^[[:space:]]*seeds *=.*/seeds = \"$SEEDS\"/}" \
        -e "/^\[p2p\]/,/^\[/{s/^[[:space:]]*persistent_peers *=.*/persistent_peers = \"$PEERS\"/}" \
        $HOME/.atomone/config/config.toml
