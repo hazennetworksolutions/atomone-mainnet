@@ -115,7 +115,7 @@ echo 'export PORT='$PORT
 
 # Setting environment variables
 echo "export MONIKER=$MONIKER" >> $HOME/.bash_profile
-echo "export ATOMONE_CHAIN_ID=\"atomone-1"" >> $HOME/.bash_profile
+echo "export ATOMONE_CHAIN_ID=\"atomone-1\"" >> $HOME/.bash_profile
 echo "export ATOMONE_PORT=$PORT" >> $HOME/.bash_profile
 source $HOME/.bash_profile
 
