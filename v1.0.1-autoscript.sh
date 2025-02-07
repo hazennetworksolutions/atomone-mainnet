@@ -77,7 +77,7 @@ Hazen Network Solutions 2025 All rights reserved."
 printNodeLogo
 
 # User confirmation to proceed
-echo -n "Type 'yes' to start the installation Atomone Testnet v1.0.0 and press Enter: "
+echo -n "Type 'yes' to start the installation Atomone Mainnet v1.0.1 and press Enter: "
 read user_input
 
 if [[ "$user_input" != "yes" ]]; then
