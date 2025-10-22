@@ -77,7 +77,7 @@ Hazen Network Solutions 2025 All rights reserved."
 printNodeLogo
 
 # User confirmation to proceed
-echo -n "Type 'yes' to start the installation Atomone Mainnet v1.0.1 and press Enter: "
+echo -n "Type 'yes' to start the installation Atomone Mainnet v2.0 and press Enter: "
 read user_input
 
 if [[ "$user_input" != "yes" ]]; then
@@ -144,23 +144,17 @@ echo $(go version) && sleep 1
 
 # Download Prysm protocol binary
 printGreen "3. Downloading Atomone binary and setting up..." && sleep 1
+
 cd $HOME
-rm -rf atomone
-git clone https://github.com/atomone-hub/atomone
-cd atomone
-git checkout v1.0.1
-make build
+mkdir -p $HOME/.atomone/cosmovisor/upgrades/v2/bin
+wget https://github.com/atomone-hub/atomone/releases/download/v2.0.0/atomoned-v2.0.0-linux-amd64 -O $HOME/.atomone/cosmovisor/upgrades/v2/bin/atomoned
+chmod +x $HOME/.atomone/cosmovisor/upgrades/v2/bin/atomoned
 
-mkdir -p ~/.atomone/cosmovisor/genesis/bin
-mv $HOME/atomone/build/atomoned ~/.atomone/cosmovisor/genesis/bin/
-
-sudo ln -s ~/.atomone/cosmovisor/genesis ~/.atomone/cosmovisor/current -f
-sudo ln -s ~/.atomone/cosmovisor/current/bin/atomoned /usr/local/bin/atomoned -f
-
-go install cosmossdk.io/tools/cosmovisor/cmd/cosmovisor@v1.6.0
+sudo ln -sfn $HOME/.atomone/cosmovisor/upgrades/v2 $HOME/.atomone/cosmovisor/current
+sudo ln -sfn $HOME/.atomone/cosmovisor/current/bin/atomoned /usr/local/bin/atomoned
 
 # Create service file
-sudo tee /etc/systemd/system/atomoned.service > /dev/null << EOF
+sudo bash -c "cat > /etc/systemd/system/atomoned.service" << EOF
 [Unit]
 Description=atomone node service
 After=network-online.target
@@ -171,10 +165,10 @@ ExecStart=$(which cosmovisor) run start --home $HOME/.atomone
 Restart=on-failure
 RestartSec=10
 LimitNOFILE=65535
-Environment="DAEMON_HOME=${HOME}/.atomone"
+Environment="DAEMON_HOME=$HOME/.atomone"
 Environment="DAEMON_NAME=atomoned"
 Environment="UNSAFE_SKIP_BACKUP=true"
-Environment="PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:~/.atomone/cosmovisor/current/bin"
+Environment="PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:$HOME/.atomone/cosmovisor/current/bin"
 
 [Install]
 WantedBy=multi-user.target
@@ -200,7 +194,7 @@ wget -O $HOME/.atomone/config/addrbook.json  https://raw.githubusercontent.com/h
 
 # Configure gas prices and ports
 printGreen "9. Configuring custom ports and gas prices..." && sleep 1
-sed -i 's|minimum-gas-prices =.*|minimum-gas-prices = "0.001uatone"|g' $HOME/.atomone/config/app.toml
+sed -i 's|minimum-gas-prices =.*|minimum-gas-prices = "0.025uatone,0.225uphoton"|g' $HOME/.atomone/config/app.toml
 sed -i -e "s/prometheus = false/prometheus = true/" $HOME/.atomone/config/config.toml
 sed -i -e "s/^indexer *=.*/indexer = \"null\"/" $HOME/.atomone/config/config.toml
 
